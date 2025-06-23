@@ -10,19 +10,23 @@ phases:
       - unzip terraform_1.7.5_linux_amd64.zip
       - mv terraform /usr/local/bin/
       - terraform -version
+
   pre_build:
     commands:
       - echo Initializing Terraform...
       - terraform init -input=false
-      # - aws sts get-caller-identity # Optional debug
+      - echo Validating Terraform configuration...
+      - terraform validate
+
   build:
     commands:
       - echo Running Terraform Plan...
-      - terraform plan -out=tfplan -input=false
+      - terraform plan -out=tfplan -input=false || (echo "Terraform plan failed" && exit 1)
+
   post_build:
     commands:
       - echo Applying Terraform...
-      - terraform apply -auto-approve -input=false tfplan
+      - terraform apply -auto-approve -input=false tfplan || (echo " Terraform apply failed" && exit 1)
 
 artifacts:
   files:
